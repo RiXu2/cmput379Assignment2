@@ -1,9 +1,9 @@
 .PHONY: clean
 
 # defalut
-SimpleSocket: 
-	gcc -std=c99 simpleClient.c -o sc.out
-	gcc -std=c99 simpleServer.c -o ss.out
+SocketThread: 
+	gcc -std=c99 -pthread clientFile.c -o cf.out
+	gcc -std=c99 -pthread serverFile.c -o sf.out
 
 clean:
 	$(RM) *.out
