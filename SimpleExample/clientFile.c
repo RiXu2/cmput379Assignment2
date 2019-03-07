@@ -15,13 +15,28 @@
 #define MAX_SIZE 50
 #define NUM_CLIENT 1
 void *connection_handler(void *socket_desc);
+
+int cfileexists(const char * filename){
+    /* try to open file to read */
+    FILE *file;
+		printf("%s\n", filename);
+    if (file = fopen(filename, "r")){
+		printf("file is here\n");
+        fclose(file);
+        return 1;
+    }
+    return 0;
+}
+
 int main()
 {
     int sock_desc;
-	int write_fd;
+    int read_fd;
+		int write_fd;
+		struct stat stat_buf;
     struct sockaddr_in serv_addr;
-    char sbuff[MAX_SIZE],rbuff[MAX_SIZE], filebuff[MAX_SIZE];
-	//off_t offset = 0;
+    char sbuff[MAX_SIZE],rbuff[MAX_SIZE], filebuff[MAX_SIZE], buffer[1024];
+		//off_t offset = 0;
 
     if((sock_desc = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         printf("Failed creating socket\n");
@@ -37,11 +52,58 @@ int main()
     while(1)
     {
         fgets(sbuff, MAX_SIZE , stdin);
-        send(sock_desc,sbuff,strlen(sbuff),0);
+        //send(sock_desc,sbuff,strlen(sbuff),0);
         
         //Handler for Quit command 'q'
         if(strcmp(sbuff, "q\n") == 0) {
-        	break;
+        	buffer[0] = 0x08;
+          send(sock_desc, buffer, 1, 0);
+          if(recv(sock_desc,rbuff,MAX_SIZE,0)==0) printf("Error\n"); 
+          else {
+          	if(rbuff[0] == 0x09) {
+          		//close Socket
+          		break;
+          	} else printf("close failed");
+        	}
+        }
+        
+        //Handler for List command 'l'
+        if(strcmp(sbuff, "l\n") == 0) {
+        	buffer[0] = 0x00;
+          send(sock_desc, buffer, 1, 0);
+          if(recv(sock_desc,rbuff,MAX_SIZE,0)==0) printf("Error\n");
+          else {
+						//get full list of filenames
+						//print them with OK
+        	}
+        }
+        
+        char * cmdsplit = strtok(sbuff, " ");		//NEEDS major testing
+        //Handler for Upload command 'u'
+        printf("%s\n", cmdsplit);
+        if(strcmp(cmdsplit, "u") == 0) {
+        	printf("split right\n");
+        	buffer[0] = 0x02;
+          send(sock_desc, buffer, 1, 0);
+          cmdsplit = strtok(NULL, " \n");
+          char tmp[MAX_SIZE];
+          cmdsplit = strcat(strcpy(tmp,"./"), cmdsplit);		//must be path from current directory
+          printf("%s\n", cmdsplit);
+          if(recv(sock_desc,rbuff,MAX_SIZE,0)==0) printf("Error\n");
+          else {
+          	printf("%s\n", rbuff);
+        		if(strcmp(rbuff, "Ready") == 0 && cfileexists(cmdsplit)) {
+        			printf("File is ready and loaded\n");
+        			read_fd = open (cmdsplit, O_RDONLY);
+        			fstat (read_fd, &stat_buf);
+        			sendfile(sock_desc, read_fd, 0, stat_buf.st_size);
+        			//close (read_fd);	
+        		  if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
+        		  else {
+          		
+          		}
+        		}	
+        	}
         }
         
         //trying to send a string over sockets

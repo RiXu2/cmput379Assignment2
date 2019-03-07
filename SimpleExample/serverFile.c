@@ -4,12 +4,15 @@
 #include<netinet/in.h>
 #include<string.h>
 #include <arpa/inet.h>
+#include <sys/stat.h>
+#include <sys/sendfile.h>
 #include <fcntl.h> // for open
 #include <unistd.h> // for close
 #include<pthread.h>
 #include <dirent.h>
 #include <sys/stat.h>
 
+#define MAX_SIZE 50
 char client_message[2000];
 char server_message[2000];
 char buffer[1024];
@@ -31,6 +34,7 @@ void * socketThread(void *arg)
 {
 	struct stat stat_buf;
 	int read_fd;
+	int write_fd;
 	int newSocket = *((int *)arg);
 	// Send message to the client socket 
 	
@@ -41,6 +45,27 @@ void * socketThread(void *arg)
             printf("Error");
         else
 		{
+			printf("I'm somewhere on the server side.\n");
+			//q command sent. 1. Send back 0x08 2. close socket
+			if(client_message[0] == 0x08) {
+				buffer[0] = 0x09;
+				send(newSocket, buffer, 1, 0);
+				//closes socket 
+			} else if(client_message[0] == 0x02) {		//u command sent
+				printf("Got in!\n");
+				send(newSocket, "Ready", strlen("Ready"), 0);
+				//creates new_file in temp folder
+				if(recv(newSocket,client_message,2000,0)==0) printf("Error");
+				else {
+					printf("%s\n", client_message);
+					write_fd = open ("./newfold/file.txt", O_WRONLY | O_CREAT);
+					
+					write(write_fd, client_message, 2000);
+					buffer[0] = 0x03;
+					send(newSocket, buffer, 1, 0);
+				}
+			}
+			
 			//removing \n from the recieved data
 			client_message[strcspn(client_message, "\n")] = 0;
 			
@@ -54,7 +79,7 @@ void * socketThread(void *arg)
 				send(newSocket,message,strlen(message),0);
 				read_fd = open (str, O_RDONLY);
 				fstat (read_fd, &stat_buf);
-				printf("%d\n", stat_buf.st_size);
+				printf("%li\n", stat_buf.st_size);
 				sendfile(newSocket, read_fd, 0, stat_buf.st_size);
 			}
 			else
@@ -89,7 +114,7 @@ int main()
 	serverAddr.sin_family = AF_INET;
 	
 	//Set port number, using htons function to use proper byte order 
-	serverAddr.sin_port = htons(9999);
+	serverAddr.sin_port = htons(9989);
 	
 	//Set IP address to localhost 
 	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
