@@ -43,7 +43,7 @@ int main()
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    serv_addr.sin_port = htons(9999);
+    serv_addr.sin_port = htons(9989);
 
     if (connect(sock_desc, (struct sockaddr *) &serv_addr, sizeof (serv_addr)) < 0) {
         printf("Failed to connect to server\n");
@@ -79,6 +79,7 @@ int main()
         }
         
         char * cmdsplit = strtok(sbuff, " ");		//NEEDS major testing
+
         //Handler for Upload command 'u'
         printf("%s\n", cmdsplit);
         if(strcmp(cmdsplit, "u") == 0) {
@@ -98,37 +99,45 @@ int main()
         			fstat (read_fd, &stat_buf);
         			sendfile(sock_desc, read_fd, 0, stat_buf.st_size);
         			//close (read_fd);	
+				//close (sock_desc);
+			  
         		  if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
         		  else {
-          		
-          		}
-        		}	
-        	}
+				if(rbuff[0] != 0x03){
+					printf("Updating file is failed.\n");
+					}
+				else{
+					printf("Updating file is successful.\n");
+					}
+          			}
+        		}
+		}
         }
-        
+        printf("here???\n");
+	// Dead lock here.
         //trying to send a string over sockets
         /*if(strcmp(sbuff, "try\n") == 0) {
           printf("Sending String message\n");
         	send(sock_desc, "I am Thomas\n", strlen("I am Thomas\n"), 0);
         }*/
 
-        if(recv(sock_desc,rbuff,MAX_SIZE,0)==0)
-            printf("Error\n");
-        else
-			fputs(rbuff,stdout);
-			rbuff[strcspn(rbuff, "\n")] = 0;
-			if (strcmp(rbuff, "sending the file") == 0) {
-				printf("I am listening\n");
+        //if(recv(sock_desc,rbuff,MAX_SIZE,0)==0)
+          //  printf("Error\n");
+        //else
+	//		fputs(rbuff,stdout);
+	//		rbuff[strcspn(rbuff, "\n")] = 0;
+	//		if (strcmp(rbuff, "sending the file") == 0) {
+	//			printf("I am listening\n");
 				//FILE * write_fd;
-				write_fd = open ("./copied file.txt", O_WRONLY | O_CREAT);
+	//			write_fd = open ("./copied file.txt", O_WRONLY | O_CREAT);
 				
-				fputs(rbuff,stdout);
+	//			fputs(rbuff,stdout);
 
-				sendfile(sock_desc, write_fd, 0, MAX_SIZE);
+	//			sendfile(sock_desc, write_fd, 0, MAX_SIZE);
 
 				
-				close(write_fd);
-			}
+	//			close(write_fd);
+	//		}
 
         sleep(2);
     }
