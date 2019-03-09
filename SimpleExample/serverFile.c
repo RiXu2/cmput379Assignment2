@@ -53,14 +53,14 @@ void * socketThread(void *arg)
 				//closes socket 
 			} else if(client_message[0] == 0x02) {		//u command sent
 				printf("Got in!\n");
-				send(newSocket, "Ready", strlen("Ready"), 0);
+				send(newSocket, "Ready", strlen("Ready")+1, 0);
 				//creates new_file in temp folder
 				if(recv(newSocket,client_message,2000,0)==0) printf("Error");
-				else {
+				else {					
 					printf("%s\n", client_message);
 					write_fd = open ("./newfold/file.txt", O_WRONLY | O_CREAT);
-					
 					write(write_fd, client_message, 2000);
+					strcpy(buffer,"");
 					buffer[0] = 0x03;
 					send(newSocket, buffer, 1, 0);
 				}
