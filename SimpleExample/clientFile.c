@@ -113,7 +113,50 @@ int main()
         		}
 		}
         }
-        printf("here???\n");
+	//Handler for remove command 'r'
+	if(strcmp(cmdsplit, "r") == 0){
+		buffer[0] = 0x04;
+		send(sock_desc, buffer, 1, 0);
+          	cmdsplit = strtok(NULL, " \n");
+		send(sock_desc, cmdsplit, strlen(cmdsplit), 0);
+		if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
+		else{
+			if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
+			else{
+				if(rbuff[0] == 0x05){
+					printf("Deleted successfully. \n");
+				}
+				else{
+					printf("Deleted failed. File not exist. \n");
+				}
+			}
+		}
+	}
+	//Handler for download command 'd'
+        if(strcmp(cmdsplit, "d") == 0){
+	buffer[0] = 0x06;
+	send(sock_desc, buffer, 1, 0);
+	cmdsplit = strtok(NULL, " \n");
+	send(sock_desc, cmdsplit, strlen(cmdsplit), 0);
+	if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
+	else{
+		if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
+		else{
+			write_fd = open ("./dfold/file.txt", O_WRONLY | O_CREAT);
+			write(write_fd, rbuff, 2000);
+			if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
+			else{
+				printf("%s\n",rbuff);
+				if(rbuff[0] == 0x07){
+					printf("download successfully. \n");
+				}
+				else{
+					printf("Download failed. File not exist. \n");
+				}
+			}
+		}
+	}
+	}
 	// Dead lock here.
         //trying to send a string over sockets
         /*if(strcmp(sbuff, "try\n") == 0) {

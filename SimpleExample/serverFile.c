@@ -20,7 +20,6 @@ char buffer[1024];
 int cfileexists(const char * filename){
     /* try to open file to read */
     FILE *file;
-	printf("%s", filename);
     if (file = fopen(filename, "r")){
 		printf("file is here\n");
         fclose(file);
@@ -42,8 +41,8 @@ void * socketThread(void *arg)
 	{
 		char str[80];
 		if(recv(newSocket,client_message,2000,0)==0)
-            printf("Error");
-        else
+            	printf("Error");
+       		else
 		{
 			printf("I'm somewhere on the server side.\n");
 			//q command sent. 1. Send back 0x08 2. close socket
@@ -65,7 +64,45 @@ void * socketThread(void *arg)
 					send(newSocket, buffer, 1, 0);
 				}
 			}
-			
+			else if(client_message[0] == 0x04){ //r command 
+				send(newSocket, "Ready", strlen("Ready")+1, 0);
+				if(recv(newSocket,client_message,2000,0)==0) printf("Error");
+				else{
+					if(cfileexists(client_message) == 0){
+						buffer[0] = 0xFF;
+						send(newSocket, buffer, 1, 0);			
+					}
+					else{
+						if(remove(client_message) == 0){
+							buffer[0] = 0x05;
+							send(newSocket, buffer, 1, 0);
+						}
+						else{
+							buffer[0] = 0xFF;
+							send(newSocket, buffer, 1, 0);
+						}
+					}
+				}
+			}
+			else if(client_message[0] == 0x06){
+				send(newSocket, "Ready", strlen("Ready")+1, 0);
+				if(recv(newSocket,client_message,2000,0)==0) printf("Error");
+				else{
+					if(cfileexists(client_message) == 0){
+						buffer[0] = 0xFF;
+						send(newSocket, buffer, 1, 0);
+					}
+					else{
+						printf("File is ready and loaded\n");
+						//only send part of file...! can't fix it
+						read_fd = open (client_message, O_RDONLY);
+        					fstat (read_fd, &stat_buf);
+        					sendfile(newSocket, read_fd, 0, stat_buf.st_size);
+						buffer[0] = 0x07;
+						send(newSocket, buffer, 1, 0);
+					}	
+				}
+			}			
 			//removing \n from the recieved data
 			client_message[strcspn(client_message, "\n")] = 0;
 			
@@ -84,7 +121,7 @@ void * socketThread(void *arg)
 			}
 			else
 			{
-				printf("we do not have it\n");
+				printf(" we do not have it\n");
 			}
 		}
 		fgets(server_message, 2000 , stdin);
