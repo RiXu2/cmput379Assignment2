@@ -68,6 +68,7 @@ void * socketThread(void *arg)
 				send(newSocket, "Ready", strlen("Ready")+1, 0);
 				if(recv(newSocket,client_message,2000,0)==0) printf("Error");
 				else{
+					printf("%s\n", client_message);
 					if(cfileexists(client_message) == 0){
 						buffer[0] = 0xFF;
 						send(newSocket, buffer, 1, 0);			
@@ -96,10 +97,13 @@ void * socketThread(void *arg)
 						printf("File is ready and loaded\n");
 						//only send part of file...! can't fix it
 						read_fd = open (client_message, O_RDONLY);
-        					fstat (read_fd, &stat_buf);
-        					sendfile(newSocket, read_fd, 0, stat_buf.st_size);
-						buffer[0] = 0x07;
-						send(newSocket, buffer, 1, 0);
+        		fstat (read_fd, &stat_buf);
+        		sendfile(newSocket, read_fd, 0, stat_buf.st_size);
+        		if(recv(newSocket,client_message,2000,0)==0) printf("Error");
+						else {
+							buffer[0] = 0x07;
+							send(newSocket, buffer, 1, 0);
+						}
 					}	
 				}
 			}			

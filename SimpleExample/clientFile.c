@@ -61,7 +61,7 @@ int main()
           if(recv(sock_desc,rbuff,MAX_SIZE,0)==0) printf("Error\n"); 
           else {
           	if(rbuff[0] == 0x09) {
-          		//close Socket
+          		printf("OK\n");
           		break;
           	} else printf("close failed");
         	}
@@ -70,18 +70,23 @@ int main()
         //Handler for List command 'l'
         if(strcmp(sbuff, "l\n") == 0) {
         	buffer[0] = 0x00;
+        	printf("OK");
           send(sock_desc, buffer, 1, 0);
-          if(recv(sock_desc,rbuff,MAX_SIZE,0)==0) printf("Error\n");
-          else {
-						//get full list of filenames
-						//print them with OK
+          while (1){
+          	if(recv(sock_desc,rbuff,MAX_SIZE,0)==0) printf("Error\n");
+          	else if (rbuff[0]=0x01) break;
+          	else {
+							//get full list of filenames
+							//print them with OK
+							printf("+ %s\nOK", rbuff);
+        		}
         	}
+        	printf("\n");
         }
         
         char * cmdsplit = strtok(sbuff, " ");		//NEEDS major testing
 
-        //Handler for Upload command 'u'
-        printf("%s\n", cmdsplit);
+        //Handler for Upload command 'u
         if(strcmp(cmdsplit, "u") == 0) {
         	printf("split right\n");
         	buffer[0] = 0x02;
@@ -117,17 +122,17 @@ int main()
 	if(strcmp(cmdsplit, "r") == 0){
 		buffer[0] = 0x04;
 		send(sock_desc, buffer, 1, 0);
-          	cmdsplit = strtok(NULL, " \n");
-		send(sock_desc, cmdsplit, strlen(cmdsplit), 0);
+    cmdsplit = strtok(NULL, " \n");
 		if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
 		else{
+			send(sock_desc, cmdsplit, strlen(cmdsplit)+1, 0);
 			if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
 			else{
 				if(rbuff[0] == 0x05){
-					printf("Deleted successfully. \n");
+					printf("OK\n");
 				}
-				else{
-					printf("Deleted failed. File not exist. \n");
+				else if(rbuff[0] == 0xFF) {
+					printf("SERROR File not found.\n");
 				}
 			}
 		}
@@ -137,13 +142,14 @@ int main()
 	buffer[0] = 0x06;
 	send(sock_desc, buffer, 1, 0);
 	cmdsplit = strtok(NULL, " \n");
-	send(sock_desc, cmdsplit, strlen(cmdsplit), 0);
 	if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
 	else{
+		send(sock_desc, cmdsplit, strlen(cmdsplit), 0);
 		if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
 		else{
 			write_fd = open ("./dfold/file.txt", O_WRONLY | O_CREAT);
 			write(write_fd, rbuff, 2000);
+			send(sock_desc, "Ready", strlen("Ready")+1, 0);
 			if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
 			else{
 				printf("%s\n",rbuff);
