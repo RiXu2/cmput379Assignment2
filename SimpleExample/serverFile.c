@@ -49,7 +49,7 @@ void * socketThread(void *arg)
 			if(client_message[0] == 0x08) {
 				buffer[0] = 0x09;
 				send(newSocket, buffer, 1, 0);
-				//closes socket 
+				break;
 			} else if(client_message[0] == 0x02) {		//u command sent
 				printf("Got in!\n");
 				send(newSocket, "Ready", strlen("Ready")+1, 0);
@@ -63,8 +63,9 @@ void * socketThread(void *arg)
 					buffer[0] = 0x03;
 					send(newSocket, buffer, 1, 0);
 				}
-			}
-			else if(client_message[0] == 0x04){ //r command 
+			} else if(client_message[0] == 0x00){ //l command
+				continue;
+			} else if(client_message[0] == 0x04){ //r command 
 				send(newSocket, "Ready", strlen("Ready")+1, 0);
 				if(recv(newSocket,client_message,2000,0)==0) printf("Error");
 				else{
@@ -128,8 +129,8 @@ void * socketThread(void *arg)
 				printf(" we do not have it\n");
 			}
 		}
-		fgets(server_message, 2000 , stdin);
-		send(newSocket,server_message,strlen(server_message),0);
+		//fgets(server_message, 2000 , stdin);
+		//send(newSocket,server_message,strlen(server_message),0);
 	}
 	
 	send(newSocket,buffer,13,0);

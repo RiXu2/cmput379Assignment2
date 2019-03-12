@@ -187,7 +187,6 @@ int main()
 				
 	//			close(write_fd);
 	//		}
-
         sleep(2);
     }
     close(sock_desc);
