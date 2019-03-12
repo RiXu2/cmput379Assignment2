@@ -86,7 +86,7 @@ int main()
         
         char * cmdsplit = strtok(sbuff, " ");		//NEEDS major testing
 
-        //Handler for Upload command 'u
+        //Handler for Upload command 'u'
         if(strcmp(cmdsplit, "u") == 0) {
         	printf("split right\n");
         	buffer[0] = 0x02;
@@ -138,18 +138,18 @@ int main()
 		}
 	}
 	//Handler for download command 'd'
-        if(strcmp(cmdsplit, "d") == 0){
+  if(strcmp(cmdsplit, "d") == 0){
 	buffer[0] = 0x06;
 	send(sock_desc, buffer, 1, 0);
 	cmdsplit = strtok(NULL, " \n");
 	if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
 	else{
 		send(sock_desc, cmdsplit, strlen(cmdsplit), 0);
-		if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
+		if(recv(sock_desc,rbuff,2000,0)==0) printf("Error\n");
 		else{
 			write_fd = open ("./dfold/file.txt", O_WRONLY | O_CREAT);
-			write(write_fd, rbuff, 2000);
-			send(sock_desc, "Ready", strlen("Ready")+1, 0);
+			write(write_fd, rbuff, strlen(rbuff));
+			send(sock_desc, "Done", strlen("Done")+1, 0);
 			if(recv(sock_desc,rbuff,MAX_SIZE-1,0)==0) printf("Error\n");
 			else{
 				printf("%s\n",rbuff);

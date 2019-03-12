@@ -57,9 +57,8 @@ void * socketThread(void *arg)
 				if(recv(newSocket,client_message,2000,0)==0) printf("Error");
 				else {					
 					printf("%s\n", client_message);
-					write_fd = open ("./newfold/file.txt", O_WRONLY | O_CREAT);
-					write(write_fd, client_message, 2000);
-					strcpy(buffer,"");
+					write_fd = open ("./newfold/file copied.txt", O_WRONLY | O_CREAT);
+					write(write_fd, client_message, strlen(client_message));
 					buffer[0] = 0x03;
 					send(newSocket, buffer, 1, 0);
 				}
@@ -88,6 +87,7 @@ void * socketThread(void *arg)
 			}
 			else if(client_message[0] == 0x06){
 				send(newSocket, "Ready", strlen("Ready")+1, 0);
+				printf("server is ready!\n");
 				if(recv(newSocket,client_message,2000,0)==0) printf("Error");
 				else{
 					if(cfileexists(client_message) == 0){
