@@ -11,11 +11,22 @@
 #include<pthread.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <openssl/md5.h>
 
 #define MAX_SIZE 50
+ 
 char client_message[2000];
 char server_message[2000];
 char buffer[1024];
+char path[MAX_SIZE];
+
+
+typedef struct {
+	char hash [33];
+	char knownas[65536][MAX_SIZE];
+} repository;
+
+repository repo [100];
 
 int cfileexists(const char * filename){
     /* try to open file to read */
@@ -28,6 +39,26 @@ int cfileexists(const char * filename){
     return 0;
 }
 
+/*
+//building xml
+if(cfileexists("files.xml") == 0){
+	FILE * fp;
+	fp = fopen("files.xml", "w");
+	printf("create xml file.\n");
+	char header[50] = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<repository>\n";
+	printf("try write header in file\n");
+	fwrite(header, sizeof(header[0]), sizeof(header)/sizeof(header[0]), fp); 
+	fprintf(fp, " "); 
+	printf("header in file\n");
+	//print <repository>\n
+	//for each file in repo
+		//print <file>\n\t\t<hashname>%s<\hashname>\n
+		//for each filename in knownas 
+			//print <knownas>%s<\knownas>\n\t\t\t
+	
+	fclose(fp);
+}
+*/
 
 void * socketThread(void *arg)
 {
@@ -51,7 +82,6 @@ void * socketThread(void *arg)
 				send(newSocket, buffer, 1, 0);
 				break;
 			} else if(client_message[0] == 0x02) {		//u command sent
-				printf("Got in!\n");
 				send(newSocket, "Ready", strlen("Ready")+1, 0);
 				//creates new_file in temp folder
 				if(recv(newSocket,client_message,2000,0)==0) printf("Error");
@@ -96,7 +126,6 @@ void * socketThread(void *arg)
 					}
 					else{
 						printf("File is ready and loaded\n");
-						//only send part of file...! can't fix it
 						read_fd = open (client_message, O_RDONLY);
         		fstat (read_fd, &stat_buf);
         		sendfile(newSocket, read_fd, 0, stat_buf.st_size);
@@ -141,13 +170,17 @@ void * socketThread(void *arg)
 }
 
 
-int main()
+int main(int argc, char * argv[])
 {
 	int serverSocket, newSocket;
+	strcpy(path, argv[1]);
 	struct sockaddr_in serverAddr;
 	struct sockaddr_storage serverStorage;
 	socklen_t addr_size;
 	
+	//read xml .dedup file into repo "strcopy repo[i]_hash"
+		
+
 	//Create the socket. 
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	
@@ -156,7 +189,7 @@ int main()
 	serverAddr.sin_family = AF_INET;
 	
 	//Set port number, using htons function to use proper byte order 
-	serverAddr.sin_port = htons(9989);
+	serverAddr.sin_port = htons(atoi(argv[2]));
 	
 	//Set IP address to localhost 
 	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");

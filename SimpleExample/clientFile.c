@@ -28,7 +28,7 @@ int cfileexists(const char * filename){
     return 0;
 }
 
-int main()
+int main(int argc, char * argv[])
 {
     int sock_desc;
     int read_fd;
@@ -42,8 +42,8 @@ int main()
         printf("Failed creating socket\n");
 
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    serv_addr.sin_port = htons(9989);
+    serv_addr.sin_addr.s_addr = inet_addr(argv[1]);
+    serv_addr.sin_port = htons(atoi(argv[2]));
 
     if (connect(sock_desc, (struct sockaddr *) &serv_addr, sizeof (serv_addr)) < 0) {
         printf("Failed to connect to server\n");
@@ -76,9 +76,9 @@ int main()
           	if(recv(sock_desc,rbuff,MAX_SIZE,0)==0) printf("Error\n");
           	else if (rbuff[0]=0x01) break;
           	else {
-							//get full list of filenames
-							//print them with OK
-							printf("+ %s\nOK", rbuff);
+			//get full list of filenames
+			//print them with OK
+			printf("+ %s\nOK", rbuff);
         		}
         	}
         	printf("\n");
@@ -154,10 +154,10 @@ int main()
 			else{
 				printf("%s\n",rbuff);
 				if(rbuff[0] == 0x07){
-					printf("download successfully. \n");
+					printf("OK \n");
 				}
 				else{
-					printf("Download failed. File not exist. \n");
+					printf("SERROR file not found in server directory. \n");
 				}
 			}
 		}

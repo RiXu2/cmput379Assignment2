@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <openssl/md5.h>
+#include <stdlib.h>
 
 int main()
 {
@@ -24,5 +25,10 @@ int main()
     for(i = 0; i < MD5_DIGEST_LENGTH; i++) printf("%02x", c[i]);
     printf (" %s\n", filename);
     fclose (inFile);
+
+
+    char * hash = "50104b087b31a40db9b9f8aaea058d92";
+    long long number = strtol(hash, NULL, 16);
+    printf("hash %02llx\n", number);
     return 0;
 }
